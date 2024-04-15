@@ -9,8 +9,8 @@ cv::Mat GaussianFilter::Filter(const cv::Mat& img)
 
 	for (int y = 0; y < img.rows; ++y) {
 		for (int x = 0; x < img.cols; ++x) {
-			cv::Vec3f sum = cv::Vec3f(0.0f, 0.0f, 0.0f);
-			float weightSum = 0.0;
+			cv::Vec3d sum = cv::Vec3d(0.0f, 0.0f, 0.0f);
+			double weightSum = 0.0;
 
 			for (int ky = -radius; ky <= radius; ++ky) {
 				for (int kx = -radius; kx <= radius; ++kx) {
@@ -18,17 +18,17 @@ cv::Mat GaussianFilter::Filter(const cv::Mat& img)
 					int ny = y + ky;
 
 					if (nx >= 0 && nx < img.cols && ny >= 0 && ny < img.rows) {
-						float weight = GaussianKernel(kx, ky, spatialSigma);
-						sum += weight * img.at<cv::Vec3f>(ny, nx);
+						double weight = GaussianKernel(kx, ky, spatialSigma);
+						sum += weight * img.at<cv::Vec3b>(ny, nx);
 						weightSum += weight;
 					}
 				}
 			}
 
-			fltImg.at<cv::Vec3f>(y, x) = sum / weightSum;
-			uchar b = std::min(std::max(fltImg.at<cv::Vec3f>(y, x)[0], 0.0f), 255.0f);
-			uchar g = std::min(std::max(fltImg.at<cv::Vec3f>(y, x)[1], 0.0f), 255.0f);
-			uchar r = std::min(std::max(fltImg.at<cv::Vec3f>(y, x)[2], 0.0f), 255.0f);
+			fltImg.at<cv::Vec3b>(y, x) = sum / weightSum;
+			uchar b = std::min(std::max(fltImg.at<cv::Vec3b>(y, x)[0], (uchar)0.0f), (uchar)255.0f);
+			uchar g = std::min(std::max(fltImg.at<cv::Vec3b>(y, x)[1], (uchar)0.0f), (uchar)255.0f);
+			uchar r = std::min(std::max(fltImg.at<cv::Vec3b>(y, x)[2], (uchar)0.0f), (uchar)255.0f);
 			fltImg.at<cv::Vec3b>(y, x) = cv::Vec3b(b, g, r);
 		}
 	}
@@ -54,7 +54,7 @@ cv::Mat BilateralFilter::Filter(const cv::Mat& img)
 	for (int y = 0; y < img.rows; ++y) {
 		for (int x = 0; x < img.cols; ++x) {
 			cv::Vec3f sum = cv::Vec3f(0.0f, 0.0f, 0.0f);
-			float weightSum = 0.0;
+			double weightSum = 0.0;
 
 			for (int ky = -radius; ky <= radius; ++ky) {
 				for (int kx = -radius; kx <= radius; ++kx) {
@@ -66,16 +66,16 @@ cv::Mat BilateralFilter::Filter(const cv::Mat& img)
 						float intensity_weight = IntensityKernel(img.at<cv::Vec3b>(y, x), img.at<cv::Vec3b>(ny, nx), rangeSigma);
 						float weight = spatial_weight * intensity_weight;
 
-						sum += weight * img.at<cv::Vec3f>(ny, nx);
+						sum += weight * img.at<cv::Vec3b>(ny, nx);
 						weightSum += weight;
 					}
 				}
 			}
 
-			fltImg.at<cv::Vec3f>(y, x) = sum / weightSum;
-			uchar b = std::min(std::max(fltImg.at<cv::Vec3f>(y, x)[0], 0.0f), 255.0f);
-			uchar g = std::min(std::max(fltImg.at<cv::Vec3f>(y, x)[1], 0.0f), 255.0f);
-			uchar r = std::min(std::max(fltImg.at<cv::Vec3f>(y, x)[2], 0.0f), 255.0f);
+			fltImg.at<cv::Vec3b>(y, x) = sum / weightSum;
+			uchar b = std::min(std::max(fltImg.at<cv::Vec3b>(y, x)[0], (uchar)0), (uchar)255);
+			uchar g = std::min(std::max(fltImg.at<cv::Vec3b>(y, x)[1], (uchar)0), (uchar)255);
+			uchar r = std::min(std::max(fltImg.at<cv::Vec3b>(y, x)[2], (uchar)0), (uchar)255);
 			fltImg.at<cv::Vec3b>(y, x) = cv::Vec3b(b, g, r);
 		}
 	}
@@ -89,14 +89,14 @@ cv::Mat BilateralFilter::Filter(const cv::Mat& img)
 	return fltImg;
 }
 
-float ImageFilter::GaussianKernel(int x, int y, float sigma)
+double ImageFilter::GaussianKernel(int x, int y, float sigma)
 {
 	float coeff = 1.0 / (2.0 * CV_PI * sigma * sigma);
 	float exponent = -(x * x + y * y) / (2.0 * sigma * sigma);
 	return coeff * exp(exponent);
 }
 
-float ImageFilter::IntensityKernel(const cv::Vec3b& p1, const cv::Vec3b& p2, float sigma)
+double ImageFilter::IntensityKernel(const cv::Vec3b& p1, const cv::Vec3b& p2, float sigma)
 {
 	float diff = sqrt(pow(p1[0] - p2[0], 2) + pow(p1[1] - p2[1], 2) + pow(p1[2] - p2[2], 2));
 	return exp(-(diff * diff) / (2 * sigma * sigma));
